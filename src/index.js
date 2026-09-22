@@ -376,9 +376,11 @@ const HTML_PAGE = `<!doctype html>
     border-radius: var(--radius);
     padding: 12px 14px;
     font-size: 16px;
+    line-height: 1.4;
     font-family: "Fraunces", Georgia, serif;
     min-height: 46px;
-    max-height: 120px;
+    max-height: 96px;
+    overflow-y: auto;
   }
   textarea:focus {
     outline: none;
@@ -626,6 +628,7 @@ const HTML_PAGE = `<!doctype html>
 
     const typingEl = addTurn("agent", "digitando...", "typing");
     input.value = "";
+    input.style.height = "auto";
     input.disabled = true;
     sendBtn.disabled = true;
 
@@ -683,6 +686,12 @@ const HTML_PAGE = `<!doctype html>
       form.requestSubmit();
     }
   });
+
+  function autoGrow() {
+    input.style.height = "auto";
+    input.style.height = input.scrollHeight + "px";
+  }
+  input.addEventListener("input", autoGrow);
 
   addTurn("agent", "Bem-vindo(a) ao Desafio TDC! Qual tema de Engenharia de Software você quer ser avaliado hoje? (ex: Design Patterns, Git, APIs REST, Testes automatizados, Clean Code...)");
 })();
