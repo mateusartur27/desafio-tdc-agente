@@ -104,17 +104,14 @@ function jsonResponse(obj, status = 200) {
   });
 }
 
-const HTML_PAGE = `<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8" />
+const HEAD_META = `<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#f6f1e7" id="theme-color-meta" />
-<title>Desafio TDC — Agente Avaliador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-<style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />`;
+
+const BASE_STYLES = `
   :root {
     color-scheme: light;
     --bg: #f5f0e4;
@@ -223,6 +220,17 @@ const HTML_PAGE = `<!doctype html>
     font-family: "IBM Plex Mono", ui-monospace, monospace;
   }
 
+  .tag {
+    display: block;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+
   .theme-toggle {
     flex-shrink: 0;
     width: 36px;
@@ -241,6 +249,87 @@ const HTML_PAGE = `<!doctype html>
   .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
   .theme-toggle svg { width: 16px; height: 16px; }
 
+  footer {
+    flex-shrink: 0;
+    text-align: center;
+    color: var(--muted);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    padding-top: 2px;
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 480px) {
+    .app { padding-left: 14px; padding-right: 14px; gap: 12px; }
+    h1 { font-size: 21px; }
+    p.sub { font-size: 12px; }
+  }
+`;
+
+const THEME_SCRIPT = `
+(function () {
+  const ICONS = {
+    system:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>',
+    light:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line></svg>',
+    dark:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>',
+  };
+  const THEME_LABEL = { system: "Sistema", light: "Claro", dark: "Escuro" };
+  const THEME_COLOR = { light: "#f5f0e4", dark: "#15130e" };
+  const themeBtn = document.getElementById("theme-toggle");
+  const themeColorMeta = document.getElementById("theme-color-meta");
+
+  function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function applyTheme(mode) {
+    if (mode === "system") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", mode);
+    }
+    const effective = mode === "system" ? (systemPrefersDark() ? "dark" : "light") : mode;
+    themeBtn.innerHTML = ICONS[mode];
+    themeBtn.setAttribute("aria-label", "Tema: " + THEME_LABEL[mode] + ". Clique para trocar.");
+    if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLOR[effective]);
+  }
+
+  function getStoredTheme() {
+    try {
+      return localStorage.getItem("theme") || "system";
+    } catch {
+      return "system";
+    }
+  }
+  function storeTheme(mode) {
+    try {
+      localStorage.setItem("theme", mode);
+    } catch {}
+  }
+
+  let currentTheme = getStoredTheme();
+  applyTheme(currentTheme);
+
+  themeBtn.addEventListener("click", () => {
+    const order = ["system", "light", "dark"];
+    currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
+    storeTheme(currentTheme);
+    applyTheme(currentTheme);
+  });
+
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (currentTheme === "system") applyTheme("system");
+    });
+  }
+})();
+`;
+
+const HOME_STYLES = `
   .panel {
     flex: 1;
     min-height: 0;
@@ -269,18 +358,7 @@ const HTML_PAGE = `<!doctype html>
   .transcript::-webkit-scrollbar-thumb:hover, textarea::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
   .turn { border-left: 3px solid var(--border-soft); padding-left: 16px; }
-  .turn .tag {
-    display: block;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 5px;
-  }
   .turn.agent { border-left-color: var(--accent); }
-  .turn.agent .tag { color: var(--accent); }
   .turn.user { border-left-color: var(--user-mark); }
   .turn.user .tag { color: var(--user-mark); }
   .turn .text {
@@ -427,19 +505,7 @@ const HTML_PAGE = `<!doctype html>
   }
   button.secondary:hover { border-color: var(--accent); }
 
-  footer {
-    flex-shrink: 0;
-    text-align: center;
-    color: var(--muted);
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 11px;
-    padding-top: 2px;
-  }
-
   @media (max-width: 480px) {
-    .app { padding-left: 14px; padding-right: 14px; gap: 12px; }
-    h1 { font-size: 21px; }
-    p.sub { font-size: 12px; }
     .turn .text { font-size: 15.5px; }
     .result { padding: 16px; }
     .result .score { font-size: 36px; }
@@ -451,89 +517,95 @@ const HTML_PAGE = `<!doctype html>
   @media (max-width: 360px) {
     button { padding: 0 12px; font-size: 11px; }
   }
+`;
+
+const ABOUT_STYLES = `
+  .content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 4px 2px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .content::-webkit-scrollbar { width: 7px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+  .content::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  .block { border-left: 3px solid var(--border-soft); padding-left: 16px; }
+  .block p { margin: 0; font-size: 16px; line-height: 1.65; }
+  .block p + p { margin-top: 10px; }
+  .block ol, .block ul {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .block a { color: var(--accent); }
+  .block strong { font-weight: 700; }
+  .block code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.86em;
+  }
+
+  @media (max-width: 480px) {
+    .block p, .block ol, .block ul { font-size: 15px; }
+  }
+`;
+
+function renderShell({ title, kicker, h1, sub, bodyInner, extraStyles, extraScript }) {
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+${HEAD_META}
+<title>${title}</title>
+<style>
+${BASE_STYLES}
+${extraStyles}
 </style>
 </head>
 <body>
   <div class="app">
     <header>
       <div class="heading">
-        <span class="kicker">Desafio TDC · Arquitetura e Agentes de IA</span>
-        <h1>Agente Avaliador</h1>
-        <p class="sub" id="sub">Escolha um tema de Engenharia de Software para começar a prova.</p>
+        <span class="kicker">${kicker}</span>
+        <h1>${h1}</h1>
+        <p class="sub" id="sub">${sub}</p>
       </div>
       <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
     </header>
+${bodyInner}
+  </div>
+<script>${THEME_SCRIPT}</script>
+${extraScript ? `<script>${extraScript}</script>` : ""}
+</body>
+</html>`;
+}
 
-    <div class="panel">
+const HOME_BODY = `    <div class="panel">
       <div class="transcript" id="transcript"></div>
       <form id="form">
         <textarea id="input" placeholder="Digite o tema (ex: Design Patterns, Git, APIs REST...)" rows="1"></textarea>
         <button id="send" type="submit">Enviar</button>
       </form>
     </div>
-    <footer>Desafio TDC São Paulo 2026</footer>
-  </div>
+    <footer>Desafio TDC São Paulo 2026 · <a href="/sobre">Sobre</a></footer>`;
 
-<script>
+const HOME_SCRIPT = `
 (function () {
-  const ICONS = {
-    system:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>',
-    light:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line></svg>',
-    dark:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>',
-  };
-  const THEME_LABEL = { system: "Sistema", light: "Claro", dark: "Escuro" };
-  const THEME_COLOR = { light: "#f5f0e4", dark: "#15130e" };
-  const themeBtn = document.getElementById("theme-toggle");
-  const themeColorMeta = document.getElementById("theme-color-meta");
-
-  function systemPrefersDark() {
-    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
-
-  function applyTheme(mode) {
-    if (mode === "system") {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      document.documentElement.setAttribute("data-theme", mode);
-    }
-    const effective = mode === "system" ? (systemPrefersDark() ? "dark" : "light") : mode;
-    themeBtn.innerHTML = ICONS[mode];
-    themeBtn.setAttribute("aria-label", "Tema: " + THEME_LABEL[mode] + ". Clique para trocar.");
-    if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLOR[effective]);
-  }
-
-  function getStoredTheme() {
-    try {
-      return localStorage.getItem("theme") || "system";
-    } catch {
-      return "system";
-    }
-  }
-  function storeTheme(mode) {
-    try {
-      localStorage.setItem("theme", mode);
-    } catch {}
-  }
-
-  let currentTheme = getStoredTheme();
-  applyTheme(currentTheme);
-
-  themeBtn.addEventListener("click", () => {
-    const order = ["system", "light", "dark"];
-    currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
-    storeTheme(currentTheme);
-    applyTheme(currentTheme);
-  });
-
-  if (window.matchMedia) {
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-      if (currentTheme === "system") applyTheme("system");
-    });
-  }
-
   const transcriptEl = document.getElementById("transcript");
   const subEl = document.getElementById("sub");
   const form = document.getElementById("form");
@@ -726,9 +798,47 @@ const HTML_PAGE = `<!doctype html>
 
   addTurn("agent", "Bem-vindo(a) ao Desafio TDC! Qual tema de Engenharia de Software você quer ser avaliado hoje? (ex: Design Patterns, Git, APIs REST, Testes automatizados, Clean Code...)");
 })();
-</script>
-</body>
-</html>`;
+`;
+
+const ABOUT_BODY = `    <div class="content">
+      <section class="block">
+        <span class="tag">O que é</span>
+        <p>Este é um agente de IA criado para o <strong>Desafio TDC 2026 São Paulo</strong> (trilha Agentes de IA). Ele aplica uma pequena prova em formato de conversa sobre um tema de Engenharia de Software escolhido por quem está respondendo.</p>
+      </section>
+      <section class="block">
+        <span class="tag">Como funciona</span>
+        <ol>
+          <li>Você escolhe um tema (ex: Git, Clean Code, APIs REST, Python, Bancos de dados...)</li>
+          <li>O agente faz pelo menos 3 perguntas, uma de cada vez, adaptando a próxima com base na sua resposta anterior</li>
+          <li>Cada resposta é avaliada individualmente, apontando o que acertou e o que faltou</li>
+          <li>No final você recebe uma nota de 0 a 10, a análise de cada pergunta e um feedback geral</li>
+        </ol>
+      </section>
+      <section class="block">
+        <span class="tag">Tecnologia</span>
+        <p>Construído com <strong>Cloudflare Workers</strong> e a API do <strong>Gemini</strong>, que conduz a conversa e avalia as respostas. O código é aberto: <a href="https://github.com/mateusartur27/desafio-tdc-agente" target="_blank" rel="noopener">ver no GitHub</a>.</p>
+      </section>
+    </div>
+    <footer>Desafio TDC São Paulo 2026 · <a href="/">Voltar para a prova</a></footer>`;
+
+const HTML_PAGE = renderShell({
+  title: "Desafio TDC — Agente Avaliador",
+  kicker: "Desafio TDC · Arquitetura e Agentes de IA",
+  h1: "Agente Avaliador",
+  sub: "Escolha um tema de Engenharia de Software para começar a prova.",
+  bodyInner: HOME_BODY,
+  extraStyles: HOME_STYLES,
+  extraScript: HOME_SCRIPT,
+});
+
+const HTML_ABOUT_PAGE = renderShell({
+  title: "Sobre — Desafio TDC",
+  kicker: "Desafio TDC · Arquitetura e Agentes de IA",
+  h1: "Sobre este agente",
+  sub: "Como o Agente Avaliador funciona e por que ele existe.",
+  bodyInner: ABOUT_BODY,
+  extraStyles: ABOUT_STYLES,
+});
 
 export default {
   async fetch(request, env) {
@@ -740,6 +850,12 @@ export default {
 
     if (url.pathname === "/" && request.method === "GET") {
       return new Response(HTML_PAGE, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
+    }
+
+    if (url.pathname === "/sobre" && request.method === "GET") {
+      return new Response(HTML_ABOUT_PAGE, {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
