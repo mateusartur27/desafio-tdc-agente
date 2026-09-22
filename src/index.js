@@ -164,11 +164,11 @@ const HTML_PAGE = `<!doctype html>
   }
 
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; overflow: hidden; }
 
   body {
     margin: 0;
-    min-height: 100dvh;
+    height: 100dvh;
     background: var(--bg);
     color: var(--text);
     font-family: "Fraunces", Georgia, "Times New Roman", serif;
@@ -184,14 +184,15 @@ const HTML_PAGE = `<!doctype html>
   .app {
     width: 100%;
     max-width: 660px;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
     padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
     gap: 16px;
   }
 
   header {
+    flex-shrink: 0;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -371,6 +372,7 @@ const HTML_PAGE = `<!doctype html>
   }
 
   form {
+    flex-shrink: 0;
     display: flex;
     align-items: flex-end;
     gap: 8px;
@@ -426,6 +428,7 @@ const HTML_PAGE = `<!doctype html>
   button.secondary:hover { border-color: var(--accent); }
 
   footer {
+    flex-shrink: 0;
     text-align: center;
     color: var(--muted);
     font-family: "IBM Plex Mono", ui-monospace, monospace;
