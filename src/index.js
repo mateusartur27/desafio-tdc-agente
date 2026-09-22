@@ -105,118 +105,185 @@ const HTML_PAGE = `<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#fafafa" id="theme-color-meta" />
 <title>Desafio TDC — Agente Avaliador</title>
 <style>
   :root {
-    --bg: #0b0f1a;
-    --panel: #141a2b;
-    --border: #262e45;
-    --text: #eef1f8;
-    --muted: #9aa4c0;
-    --accent1: #ff4d4d;
-    --accent2: #ff8a3d;
-    --accent3: #6c5ce7;
-    --bubble-user: #2a3555;
-    --bubble-model: #1b2338;
+    color-scheme: light;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f2f2f4;
+    --border: #e4e4e7;
+    --text: #18181b;
+    --muted: #71717a;
+    --accent: #e8462b;
+    --accent-text: #ffffff;
+    --ring: rgba(232, 70, 43, 0.35);
+    --radius: 18px;
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0b0b0d;
+      --surface: #131316;
+      --surface-2: #1c1c1f;
+      --border: #2a2a2e;
+      --text: #f4f4f5;
+      --muted: #9a9aa2;
+      --accent: #ff6a47;
+      --accent-text: #17100d;
+      --ring: rgba(255, 106, 71, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0b0b0d;
+    --surface: #131316;
+    --surface-2: #1c1c1f;
+    --border: #2a2a2e;
+    --text: #f4f4f5;
+    --muted: #9a9aa2;
+    --accent: #ff6a47;
+    --accent-text: #17100d;
+    --ring: rgba(255, 106, 71, 0.35);
+  }
+
   * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+  }
+
   body {
     margin: 0;
-    min-height: 100vh;
-    background: radial-gradient(1200px 600px at 20% -10%, #1b2450 0%, var(--bg) 55%);
+    min-height: 100dvh;
+    background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
     display: flex;
     justify-content: center;
-    padding: 24px 12px;
+    transition: background 0.15s ease, color 0.15s ease;
   }
+
   .app {
     width: 100%;
-    max-width: 680px;
+    max-width: 620px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    min-height: 100dvh;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    gap: 14px;
   }
+
   header {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
   }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, var(--accent1), var(--accent2));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  h1 { margin: 0; font-size: 22px; }
-  p.sub { margin: 0; color: var(--muted); font-size: 14px; }
-
-  .chat {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 16px;
+  header .heading {
     display: flex;
     flex-direction: column;
-    height: 60vh;
-    min-height: 420px;
+    gap: 3px;
+    min-width: 0;
+  }
+  .kicker {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  p.sub { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 46ch; }
+
+  .theme-toggle {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .theme-toggle:hover { border-color: var(--muted); }
+  .theme-toggle svg { width: 18px; height: 18px; }
+
+  .chat {
+    flex: 1;
+    min-height: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
+
   .messages {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
+  .messages::-webkit-scrollbar { width: 8px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+  .messages::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
   .bubble {
     max-width: 85%;
     padding: 10px 14px;
     border-radius: 14px;
-    line-height: 1.45;
+    line-height: 1.5;
     font-size: 14.5px;
     white-space: pre-wrap;
+    word-break: break-word;
   }
   .bubble.user {
     align-self: flex-end;
-    background: var(--bubble-user);
+    background: var(--accent);
+    color: var(--accent-text);
     border-bottom-right-radius: 4px;
   }
   .bubble.model {
     align-self: flex-start;
-    background: var(--bubble-model);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
     border-bottom-left-radius: 4px;
   }
   .bubble.typing { color: var(--muted); font-style: italic; }
 
   .result-card {
     align-self: stretch;
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 18px;
-    background: linear-gradient(135deg, rgba(255,77,77,0.15), rgba(108,92,231,0.18));
+    background: var(--surface-2);
     border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
-  .result-card .score {
-    font-size: 34px;
-    font-weight: 800;
-    background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .result-card .theme { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .result-card .feedback { font-size: 14.5px; line-height: 1.5; }
+  .result-card .theme-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .result-card .score { font-size: 32px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+  .result-card .feedback { font-size: 14.5px; line-height: 1.55; }
 
   form {
     display: flex;
@@ -227,38 +294,60 @@ const HTML_PAGE = `<!doctype html>
   textarea {
     flex: 1;
     resize: none;
-    background: #0e1320;
+    background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 14.5px;
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 16px;
     font-family: inherit;
     min-height: 44px;
     max-height: 120px;
   }
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--ring);
+  }
   button {
     border: none;
-    border-radius: 10px;
-    padding: 0 18px;
+    border-radius: 12px;
+    padding: 0 20px;
+    min-height: 44px;
     font-weight: 700;
-    color: white;
-    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    font-size: 14.5px;
+    color: var(--accent-text);
+    background: var(--accent);
     cursor: pointer;
   }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
   button.secondary {
-    background: var(--bubble-user);
+    align-self: center;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
   }
-  footer { text-align: center; color: var(--muted); font-size: 12px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding-bottom: 2px; }
+
+  @media (max-width: 480px) {
+    .app { padding-left: 10px; padding-right: 10px; gap: 10px; }
+    .chat { border-radius: 14px; }
+    h1 { font-size: 17px; }
+    p.sub { font-size: 12.5px; }
+    .bubble { max-width: 92%; font-size: 14px; }
+    .result-card .score { font-size: 28px; }
+  }
 </style>
 </head>
 <body>
   <div class="app">
     <header>
-      <span class="badge">Desafio TDC · Arquitetura e Agentes de IA</span>
-      <h1>Agente Avaliador</h1>
-      <p class="sub">Escolha um tema de Engenharia de Software e responda a prova por conversa. No final você recebe nota e feedback.</p>
+      <div class="heading">
+        <span class="kicker">Desafio TDC · Arquitetura e Agentes de IA</span>
+        <h1>Agente Avaliador</h1>
+        <p class="sub">Escolha um tema de Engenharia de Software e responda a prova por conversa. No final você recebe nota e feedback.</p>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema"></button>
     </header>
 
     <div class="chat">
@@ -273,6 +362,65 @@ const HTML_PAGE = `<!doctype html>
 
 <script>
 (function () {
+  const ICONS = {
+    system:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>',
+    light:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line></svg>',
+    dark:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>',
+  };
+  const THEME_LABEL = { system: "Sistema", light: "Claro", dark: "Escuro" };
+  const THEME_COLOR = { light: "#fafafa", dark: "#0b0b0d" };
+  const themeBtn = document.getElementById("theme-toggle");
+  const themeColorMeta = document.getElementById("theme-color-meta");
+
+  function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function applyTheme(mode) {
+    if (mode === "system") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", mode);
+    }
+    const effective = mode === "system" ? (systemPrefersDark() ? "dark" : "light") : mode;
+    themeBtn.innerHTML = ICONS[mode];
+    themeBtn.setAttribute("aria-label", "Tema: " + THEME_LABEL[mode] + ". Clique para trocar.");
+    if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLOR[effective]);
+  }
+
+  function getStoredTheme() {
+    try {
+      return localStorage.getItem("theme") || "system";
+    } catch {
+      return "system";
+    }
+  }
+
+  function storeTheme(mode) {
+    try {
+      localStorage.setItem("theme", mode);
+    } catch {}
+  }
+
+  let currentTheme = getStoredTheme();
+  applyTheme(currentTheme);
+
+  themeBtn.addEventListener("click", () => {
+    const order = ["system", "light", "dark"];
+    currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
+    storeTheme(currentTheme);
+    applyTheme(currentTheme);
+  });
+
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (currentTheme === "system") applyTheme("system");
+    });
+  }
+
   const messagesEl = document.getElementById("messages");
   const form = document.getElementById("form");
   const input = document.getElementById("input");
@@ -294,7 +442,7 @@ const HTML_PAGE = `<!doctype html>
     const div = document.createElement("div");
     div.className = "result-card";
     div.innerHTML =
-      '<div class="theme">Resultado — ' + escapeHtml(theme) + '</div>' +
+      '<div class="theme-label">Resultado — ' + escapeHtml(theme) + '</div>' +
       '<div class="score">' + escapeHtml(nota) + ' / 10</div>' +
       '<div class="feedback">' + escapeHtml(feedback) + '</div>';
     messagesEl.appendChild(div);
