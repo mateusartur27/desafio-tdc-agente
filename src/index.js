@@ -290,6 +290,16 @@ const HTML_PAGE = `<!doctype html>
   }
   .turn.typing .text { color: var(--muted); font-style: italic; }
 
+  .text strong, .qtitle strong, .qanalysis strong, .feedback strong { font-weight: 700; }
+  .text code, .qtitle code, .qanalysis code, .feedback code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.86em;
+  }
+
   .result {
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -362,6 +372,7 @@ const HTML_PAGE = `<!doctype html>
 
   form {
     display: flex;
+    align-items: flex-end;
     gap: 8px;
     padding-top: 14px;
     margin-top: 4px;
@@ -369,6 +380,7 @@ const HTML_PAGE = `<!doctype html>
   }
   textarea {
     flex: 1;
+    min-width: 0;
     resize: none;
     background: var(--surface);
     color: var(--text);
@@ -381,6 +393,7 @@ const HTML_PAGE = `<!doctype html>
     min-height: 46px;
     max-height: 96px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   textarea:focus {
     outline: none;
@@ -388,6 +401,8 @@ const HTML_PAGE = `<!doctype html>
     box-shadow: 0 0 0 3px var(--ring);
   }
   button {
+    flex-shrink: 0;
+    white-space: nowrap;
     border: 1px solid var(--accent);
     border-radius: var(--radius);
     padding: 0 20px;
@@ -425,6 +440,13 @@ const HTML_PAGE = `<!doctype html>
     .turn .text { font-size: 15.5px; }
     .result { padding: 16px; }
     .result .score { font-size: 36px; }
+    form { gap: 6px; }
+    textarea { padding: 10px 12px; }
+    button { padding: 0 14px; font-size: 12px; letter-spacing: 0.02em; }
+  }
+
+  @media (max-width: 360px) {
+    button { padding: 0 12px; font-size: 11px; }
   }
 </style>
 </head>
@@ -446,7 +468,7 @@ const HTML_PAGE = `<!doctype html>
         <button id="send" type="submit">Enviar</button>
       </form>
     </div>
-    <footer>Desafio TDC São Paulo 2026 — protótipo</footer>
+    <footer>Desafio TDC São Paulo 2026</footer>
   </div>
 
 <script>
@@ -527,7 +549,7 @@ const HTML_PAGE = `<!doctype html>
     tag.textContent = role === "user" ? "Você" : "Agente";
     const body = document.createElement("div");
     body.className = "text";
-    body.textContent = text;
+    body.innerHTML = mdLite(text);
     div.appendChild(tag);
     div.appendChild(body);
     transcriptEl.appendChild(div);
@@ -543,6 +565,12 @@ const HTML_PAGE = `<!doctype html>
     const d = document.createElement("div");
     d.textContent = str;
     return d.innerHTML;
+  }
+
+  function mdLite(str) {
+    return escapeHtml(str)
+      .replace(/\\*\\*(.+?)\\*\\*/g, "<strong>$1</strong>")
+      .replace(/\\\`([^\\\`]+)\\\`/g, "<code>$1</code>");
   }
 
   function countAskedInText(text) {
@@ -592,9 +620,9 @@ const HTML_PAGE = `<!doctype html>
               '<div class="breakdown-item"><span class="qtag mono">Q' +
               escapeHtml(b.n) +
               '</span><div class="qbody"><div class="qtitle">' +
-              escapeHtml(b.title) +
+              mdLite(b.title) +
               '</div><div class="qanalysis">' +
-              escapeHtml(b.analysis) +
+              mdLite(b.analysis) +
               "</div></div></div>"
           )
           .join("") +
@@ -604,7 +632,7 @@ const HTML_PAGE = `<!doctype html>
       '<div class="theme-label">Resultado — ' + escapeHtml(result.theme) + '</div>' +
       '<div class="score">' + escapeHtml(result.nota) + '<span class="of10">/ 10</span></div>' +
       breakdownHtml +
-      '<div class="feedback">' + escapeHtml(result.feedback) + '</div>';
+      '<div class="feedback">' + mdLite(result.feedback) + '</div>';
     transcriptEl.appendChild(div);
 
     const restart = document.createElement("button");
